@@ -16,34 +16,35 @@ export default function UploadZone({ onFilesAccepted, currentCount }: Props) {
   const [dragging, setDragging] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  function validate(files: File[]): { valid: File[]; error: string | null } {
+  function validate(files: File[]): { valid: File[]; errors: string[] } {
     const valid: File[] = []
+    const errors: string[] = []
     const remaining = MAX_FILES - currentCount
 
     for (const file of files) {
       if (!ACCEPTED_TYPES.includes(file.type)) {
-        return { valid, error: '仅支持 PNG / JPG / WEBP 格式' }
+        errors.push(`${file.name}：仅支持 PNG / JPG / WEBP 格式`)
+        continue
       }
       if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-        return { valid, error: `文件大小不能超过 ${MAX_SIZE_MB}MB` }
+        errors.push(`${file.name}：文件大小不能超过 ${MAX_SIZE_MB}MB`)
+        continue
       }
       valid.push(file)
     }
 
     if (valid.length > remaining) {
-      return {
-        valid: valid.slice(0, remaining),
-        error: `最多支持 ${MAX_FILES} 张图片，已截取前 ${remaining} 张`,
-      }
+      errors.push(`最多支持 ${MAX_FILES} 张图片，已截取前 ${remaining} 张`)
+      return { valid: valid.slice(0, remaining), errors }
     }
 
-    return { valid, error: null }
+    return { valid, errors }
   }
 
   function handleFiles(files: FileList | null) {
     if (!files || files.length === 0) return
-    const { valid, error } = validate(Array.from(files))
-    setError(error)
+    const { valid, errors } = validate(Array.from(files))
+    setError(errors.length > 0 ? errors.join('\n') : null)
     if (valid.length > 0) onFilesAccepted(valid)
   }
 
@@ -70,7 +71,7 @@ export default function UploadZone({ onFilesAccepted, currentCount }: Props) {
         <p className="text-gray-400 text-xs mt-1">支持 PNG / JPG / WEBP，单张最大 20MB，最多 20 张</p>
       </div>
       {error && (
-        <p className="mt-2 text-sm text-red-500">{error}</p>
+        <p className="mt-2 text-sm text-red-500 whitespace-pre-line">{error}</p>
       )}
       <input
         ref={inputRef}

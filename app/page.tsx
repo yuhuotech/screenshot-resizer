@@ -35,7 +35,7 @@ export default function Home() {
     setProcessing(true)
 
     try {
-      const seen = new Map<string, number>()
+      const seen = new Set<string>()
       const results: { blob: Blob; filename: string }[] = []
       const errors: string[] = []
 

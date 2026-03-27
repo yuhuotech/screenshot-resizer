@@ -5,7 +5,7 @@ export function buildOutputFilename(
   originalName: string,
   width: number,
   height: number,
-  seen: Map<string, number>
+  seen: Set<string>
 ): string {
   const dotIndex = originalName.lastIndexOf('.')
   const base = dotIndex !== -1 ? originalName.slice(0, dotIndex) : originalName
@@ -18,19 +18,20 @@ export function buildOutputFilename(
   const candidate = `${base}_${width}x${height}.${ext}`
 
   if (!seen.has(candidate)) {
-    seen.set(candidate, 1)
+    seen.add(candidate)
     return candidate
   }
 
   let counter = 2
-  while (true) {
+  while (counter < 10000) {
     const name = `${base}_${width}x${height}_${counter}.${ext}`
     if (!seen.has(name)) {
-      seen.set(name, 1)
+      seen.add(name)
       return name
     }
     counter++
   }
+  throw new Error(`Could not deduplicate filename after 10000 attempts: ${candidate}`)
 }
 
 export function buildZipFilename(width: number, height: number): string {
