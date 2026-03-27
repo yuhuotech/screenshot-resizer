@@ -34,33 +34,35 @@ export default function Home() {
     if (images.length === 0 || processing) return
     setProcessing(true)
 
-    const seen = new Map<string, number>()
-    const results: { blob: Blob; filename: string }[] = []
-    const errors: string[] = []
+    try {
+      const seen = new Map<string, number>()
+      const results: { blob: Blob; filename: string }[] = []
+      const errors: string[] = []
 
-    for (const img of images) {
-      try {
-        const blob = await resizeImage(img.file, resolution.width, resolution.height)
-        const filename = buildOutputFilename(img.file.name, resolution.width, resolution.height, seen)
-        results.push({ blob, filename })
-      } catch {
-        errors.push(img.file.name)
+      for (const img of images) {
+        try {
+          const blob = await resizeImage(img.file, resolution.width, resolution.height)
+          const filename = buildOutputFilename(img.file.name, resolution.width, resolution.height, seen)
+          results.push({ blob, filename })
+        } catch {
+          errors.push(img.id)
+        }
       }
-    }
 
-    if (errors.length > 0) {
-      setImages((prev) =>
-        prev.map((img) =>
-          errors.includes(img.file.name) ? { ...img, error: '处理失败' } : img
+      if (errors.length > 0) {
+        setImages((prev) =>
+          prev.map((img) =>
+            errors.includes(img.id) ? { ...img, error: '处理失败' } : img
+          )
         )
-      )
-    }
+      }
 
-    if (results.length > 0) {
-      await downloadAsZip(results, buildZipFilename(resolution.width, resolution.height))
+      if (results.length > 0) {
+        await downloadAsZip(results, buildZipFilename(resolution.width, resolution.height))
+      }
+    } finally {
+      setProcessing(false)
     }
-
-    setProcessing(false)
   }
 
   return (
