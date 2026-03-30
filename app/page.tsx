@@ -4,13 +4,15 @@ import { useState } from 'react'
 import UploadZone from '@/components/UploadZone'
 import ImageList from '@/components/ImageList'
 import ResolutionSelector from '@/components/ResolutionSelector'
-import { UploadedImage, Resolution, RESOLUTIONS } from '@/lib/types'
+import FormatSelector from '@/components/FormatSelector'
+import { UploadedImage, Resolution, RESOLUTIONS, OutputFormat, OUTPUT_FORMATS } from '@/lib/types'
 import { resizeImage } from '@/lib/resizeImage'
 import { buildOutputFilename, buildZipFilename, downloadAsZip } from '@/lib/buildZip'
 
 export default function Home() {
   const [images, setImages] = useState<UploadedImage[]>([])
   const [resolution, setResolution] = useState<Resolution>(RESOLUTIONS[0])
+  const [outputFormat, setOutputFormat] = useState<OutputFormat>(OUTPUT_FORMATS[0])
   const [processing, setProcessing] = useState(false)
 
   function handleFilesAccepted(files: File[]) {
@@ -41,8 +43,8 @@ export default function Home() {
 
       for (const img of images) {
         try {
-          const blob = await resizeImage(img.file, resolution.width, resolution.height)
-          const filename = buildOutputFilename(img.file.name, resolution.width, resolution.height, seen)
+          const blob = await resizeImage(img.file, resolution.width, resolution.height, outputFormat.mimeType)
+          const filename = buildOutputFilename(img.file.name, resolution.width, resolution.height, seen, outputFormat.ext)
           results.push({ blob, filename })
         } catch {
           errors.push(img.id)
@@ -68,9 +70,9 @@ export default function Home() {
   return (
     <main className="max-w-3xl mx-auto px-4 py-10 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">App Store 截图尺寸调整</h1>
+        <h1 className="text-2xl font-bold text-gray-800">ShotFit · 截图适配助手</h1>
         <p className="text-sm text-gray-500 mt-1">
-          上传截图，选择目标分辨率，一键调整并打包下载
+          上传截图，选择目标分辨率和输出格式，一键调整并打包下载。支持 App Store、小米应用商店等多个平台
         </p>
       </div>
 
@@ -79,6 +81,8 @@ export default function Home() {
       <ImageList images={images} onRemove={handleRemove} />
 
       <ResolutionSelector selected={resolution} onChange={setResolution} />
+
+      <FormatSelector selected={outputFormat} onChange={setOutputFormat} />
 
       <button
         onClick={handleProcess}

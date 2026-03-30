@@ -1,10 +1,10 @@
 export async function resizeImage(
   file: File,
   width: number,
-  height: number
+  height: number,
+  outputMimeType: string
 ): Promise<Blob> {
-  const mimeType = file.type === 'image/webp' ? 'image/png' : file.type
-  const quality = mimeType === 'image/jpeg' ? 0.92 : undefined
+  const quality = outputMimeType === 'image/jpeg' ? 0.92 : outputMimeType === 'image/webp' ? 0.9 : undefined
 
   const objectUrl = URL.createObjectURL(file)
 
@@ -27,7 +27,7 @@ export async function resizeImage(
           if (blob) resolve(blob)
           else reject(new Error('Canvas toBlob returned null'))
         },
-        mimeType,
+        outputMimeType,
         quality
       )
     }

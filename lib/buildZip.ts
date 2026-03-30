@@ -5,15 +5,11 @@ export function buildOutputFilename(
   originalName: string,
   width: number,
   height: number,
-  seen: Set<string>
+  seen: Set<string>,
+  ext: string
 ): string {
   const dotIndex = originalName.lastIndexOf('.')
   const base = dotIndex !== -1 ? originalName.slice(0, dotIndex) : originalName
-  const ext = originalName.endsWith('.webp')
-    ? 'png'
-    : dotIndex !== -1
-    ? originalName.slice(dotIndex + 1)
-    : 'png'
 
   const candidate = `${base}_${width}x${height}.${ext}`
 
